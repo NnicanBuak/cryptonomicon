@@ -116,7 +116,7 @@
       </section>
       <template v-if="tickers.length > 0">
         <hr class="w-full border-t border-gray-600 bg-gray-100 pb-8" />
-        <dl class="mb-8 grid grid-cols-1 gap-5 bg-gray-100 sm:grid-cols-3">
+        <dl class="pb-8 grid grid-cols-1 gap-5 bg-gray-100 sm:grid-cols-3">
           <div
             v-for="t in tickers"
             :key="t.name"
@@ -226,7 +226,7 @@ export default {
     return {
       contentIsLoaded: false,
       coinList: [],
-      fetchDataUpdateTime: 5000,
+      fetchDataUpdateTime: 60000,
       searchTickerInput: "",
       searchTickerInputIsAlreadyInUse: false,
       searchHintsShowed: false,
@@ -240,7 +240,7 @@ export default {
       tickers: [], // { name: "", value: [] }
       selectedTickerName: null, // ""
       graph: [],
-      graphScale: 2.5,
+      graphScale: 2.25,
       graphIsScaling: false,
     };
   },
@@ -253,11 +253,16 @@ export default {
       const data = await promise.json();
       this.coinList = Object.keys(data.Data);
     })();
+
     const tickersData = localStorage.getItem("cryptonomicon-list");
     if (tickersData) {
       this.tickers = JSON.parse(tickersData);
       this.tickers.forEach((t) => this.subscribeToFetchData(t.name));
     }
+
+    this.searchHintsDefault
+      .filter((h) => this.tickers.some((t) => t.name === h.name))
+      .forEach((h) => (h.show = false));
   },
 
   mounted() {
@@ -294,7 +299,10 @@ export default {
               (this.tickers.every((t) => t.name !== c) || this.tickers === [])
           )
           .sort();
-      } else searchHints = this.searchHintsDefault.map((h) => h.name);
+      } else
+        searchHints = this.searchHintsDefault
+          .filter((h) => h.show)
+          .map((h) => h.name);
 
       this.searchHints = searchHints.slice(0, 4);
     },
@@ -310,22 +318,19 @@ export default {
   methods: {
     subscribeToFetchData(tickerName) {
       setInterval(async () => {
-        if (this.selectedTickerName === tickerName) {
-          const promise = await fetch(
-            `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=d646375d1bdb55ba2a2c3fda4b9058b1426d863b0e303a373060891421744b63`
-          );
+        const promise = await fetch(
+          `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=d646375d1bdb55ba2a2c3fda4b9058b1426d863b0e303a373060891421744b63`
+        );
 
-          const data = await promise.json(),
-            price =
-              data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
-          const time = await new Date();
-          this.tickers.find((t) => t.name === tickerName).value = price;
-          if (this.selectedTickerName === tickerName) {
-            this.graph.unshift({
-              time: time.toTimeString().slice(0, 5),
-              value: price,
-            });
-          }
+        const data = await promise.json(),
+          price = data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
+        const time = new Date();
+        this.tickers.find((t) => t.name === tickerName).value = price;
+        if (this.selectedTickerName === tickerName) {
+          this.graph.unshift({
+            time: time.toTimeString().slice(0, 5),
+            value: price,
+          });
         }
       }, this.fetchDataUpdateTime);
     },
@@ -360,11 +365,22 @@ export default {
     },
 
     selectTicker(ticker = null) {
-      if (ticker !== null && ticker?.name !== this.selectedTickerName)
+      if (ticker !== null && ticker?.name !== this.selectedTickerName) {
         this.selectedTickerName = ticker.name;
-      else this.selectedTickerName = null;
-      this.graphScale = 2.5;
-      this.graph = [];
+        if (ticker.value !== "-") {
+          const time = new Date();
+          this.graph = [
+            {
+              time: `${time.toTimeString().slice(0, 5)}?`,
+              value: ticker.value,
+            },
+          ];
+        }
+      } else {
+        this.selectedTickerName = null;
+        this.graph = [];
+      }
+      this.graphScale = 2.25;
     },
 
     removeTicker(ticker) {
