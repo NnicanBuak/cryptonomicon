@@ -38,8 +38,9 @@
               class="p-1 mt-1 relative rounded-md shadow-md bg-gray-300"
             >
               <input
-                v-model="searchTickerInput"
-                @keydown.enter="addTicker(searchTickerInput)"
+                v-model="searchTicker"
+                ref="searchTickerInput"
+                @keydown.enter="addTicker(searchTicker)"
                 @mouseenter="searchHintsShowed = true"
                 @focus="searchHintsShowed = true"
                 type="text"
@@ -49,7 +50,7 @@
                 class="input-danger w-full block pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded"
               />
               <svg
-                v-show="searchTickerInputIsAlreadyInUse"
+                v-show="searchTickerIsAlreadyInUse"
                 width="528px"
                 height="528px"
                 viewBox="0 -8 528 528"
@@ -72,7 +73,7 @@
             <transition name="slide">
               <div
                 v-if="searchHints.length > 0"
-                v-show="searchTickerInput !== '' || searchHintsShowed"
+                v-show="searchHintsShowed"
                 style="
                   width: fit-content;
                   border-radius: 0 0 0.375rem 0.375rem;
@@ -84,7 +85,10 @@
                 <span
                   v-for="h in searchHints"
                   :key="h"
-                  @click="(this.searchTickerInput = h), addTicker(h)"
+                  @click="
+                    (this.searchTicker = h),
+                      this.$refs.searchTickerInput.focus()
+                  "
                   class="inline-flex items-center px-2 m-1 rounded text-xs font-medium bg-purple-500 text-white cursor-pointer hover:bg-purple-600"
                 >
                   {{ h }}
@@ -94,7 +98,7 @@
           </div>
         </div>
         <button
-          @click="addTicker(searchTickerInput)"
+          @click="addTicker(searchTicker)"
           type="button"
           class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-green-400 hover:bg-green-500 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
@@ -337,8 +341,8 @@ export default {
       contentIsLoaded: false,
       coinList: [],
       fetchDataUpdateTime: 60000,
-      searchTickerInput: "",
-      searchTickerInputIsAlreadyInUse: false,
+      searchTicker: "",
+      searchTickerIsAlreadyInUse: false,
       searchHintsShowed: false,
       searchHints: ["BTC", "ETH", "LTC", "BCH"],
       searchHintsDefault: [
@@ -362,9 +366,8 @@ export default {
     const windowData = Object.fromEntries(
       new URL(window.location).searchParams.entries()
     );
-
     if (windowData.filter) this.tickersFilter = windowData.filter;
-    if (windowData.page) this.tickersPage = windowData.page;
+    if (windowData.page) this.tickersPage = Number(windowData.page);
 
     const tickersData = localStorage.getItem("cryptonomicon-list");
     if (tickersData) {
@@ -394,7 +397,7 @@ export default {
         // Note: `newValue` will be equal to `oldValue` here
         // on nested mutations as long as the object itself
         // hasn't been replaced.
-        if (this.searchTickerInput === "") {
+        if (this.searchTicker === "") {
           this.searchHints = newValue.filter((h) => h.show).map((h) => h.name);
         }
       },
@@ -419,20 +422,20 @@ export default {
       );
     },
 
-    searchTickerInput(newValue) {
-      this.searchTickerInput = newValue.toUpperCase().trim();
-      this.searchTickerInputIsAlreadyInUse = this.tickers.some(
+    searchTicker(newValue) {
+      this.searchTicker = newValue.toUpperCase().trim();
+      this.searchTickerIsAlreadyInUse = this.tickers.some(
         (t) => t.name === newValue
       )
         ? true
         : false;
       let searchHints;
       if (newValue !== "") {
+        this.searchHintsShowed = true;
         searchHints = this.coinList
           .filter(
             (c) =>
-              c.slice(0, this.searchTickerInput.length) ===
-                this.searchTickerInput &&
+              c.slice(0, this.searchTicker.length) === this.searchTicker &&
               (this.tickers.every((t) => t.name !== c) || this.tickers === [])
           )
           .sort();
@@ -445,8 +448,8 @@ export default {
     },
 
     tickers(newValue) {
-      this.searchTickerInputIsAlreadyInUse = newValue.some(
-        (t) => t.name === this.searchTickerInput
+      this.searchTickerIsAlreadyInUse = newValue.some(
+        (t) => t.name === this.searchTicker
       );
     },
   },
@@ -492,8 +495,8 @@ export default {
 
       if (
         name !== "" &&
-        !this.searchTickerInputIsAlreadyInUse &&
-        this.coinList.includes(this.searchTickerInput)
+        !this.searchTickerIsAlreadyInUse &&
+        this.coinList.includes(this.searchTicker)
       ) {
         const ticker = {
           name: name,
@@ -510,7 +513,7 @@ export default {
         this.subscribeToFetchData(ticker.name);
         this.selectedTickerName = ticker.name;
         this.graph = [];
-        this.searchTickerInput = "";
+        this.searchTicker = "";
       }
     },
 
@@ -529,7 +532,8 @@ export default {
       this.tickers = this.tickers.filter((t) => t !== ticker);
       this.selectedTickerName = null;
       this.graph = [];
-      this.searchHintsDefault.find((h) => h.name === ticker.name).show = true;
+      if (this.searchHintsDefault.some((h) => h.name === ticker.name))
+        this.searchHintsDefault.find((h) => h.name === ticker.name).show = true;
       localStorage.removeItem(
         "cryptonomicon-list",
         JSON.stringify(this.tickers)
