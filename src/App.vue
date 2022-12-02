@@ -189,7 +189,9 @@
                 </g>
               </svg>
             </button>
-            <span class="text-xl">{{ this.tickersPage }}</span>
+            <span class="text-xl"
+              >{{ this.tickersPage }}/{{ this.tickers.length / 6 }}</span
+            >
             <button
               :disabled="!tickersHasNextPage"
               @click="this.tickersPage = this.tickersPage + 1"
@@ -280,12 +282,13 @@
         <div
           @mousewheel="scaleGraph"
           :alt="this.graphScale"
-          :class="{ 'graph-scaled': this.graphIsScaling }"
-          class="overflow-hidden flex flex-row-reverse border-gray-600 border-b border-l h-64"
+          style="cursor: w-resize"
+          class="overflow-hidden flex flex-row-reverse border-gray-600 border-b border-r h-64"
         >
           <div
             v-for="(bar, index) in normalizedGraph"
             :key="index"
+            style="cursor: pointer"
             class="h-full flex items-end"
           >
             <div
@@ -661,10 +664,6 @@ export default {
 
 .input-danger::after {
   content: "!";
-}
-
-.graph-scaled {
-  cursor: w-resize;
 }
 
 .shake {
