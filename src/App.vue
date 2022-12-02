@@ -274,7 +274,7 @@
         <h3 class="bold text-lg leading-3 font-light text-gray-900 mb-8">
           {{ this.graph[0]?.value }}
         </h3>
-        <di
+        <div
           @mousewheel="scaleGraph"
           :alt="this.graphScale"
           :class="{ 'graph-scaled': this.graphIsScaling }"
@@ -294,7 +294,7 @@
               class="bg-purple-800 border w-16"
             ></div>
           </div>
-        </di>
+        </div>
         <button
           @click="selectTicker()"
           type="button"
