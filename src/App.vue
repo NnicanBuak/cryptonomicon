@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto flex flex-col items-center p-4">
+  <div class="container mx-auto flex flex-col items-center py-4">
     <transition name="fade">
       <div
         v-if="!contentIsLoaded"
@@ -28,7 +28,7 @@
     ></transition>
     <div class="container">
       <section>
-        <div class="flex">
+        <div class="flex px-4">
           <div class="max-w-full">
             <label for="wallet" class="block text-sm font-medium text-gray-900"
               >Тикер</label
@@ -99,7 +99,7 @@
         <button
           @click="addTicker(searchTicker)"
           type="button"
-          class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-green-400 hover:bg-green-500 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          class="my-4 px-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-green-400 hover:bg-green-500 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
           <!-- Heroicon name: solid/mail -->
           <svg
@@ -120,7 +120,10 @@
 
       <template v-if="tickers.length > 0">
         <hr class="w-full border-t border-gray-600 bg-gray-100 pb-8" />
-        <div :class="{ 'pb-8': this.tickers.length <= 6 }" class="bg-gray-100">
+        <div
+          :class="{ 'pb-8': this.tickers.length <= 6 }"
+          class="bg-gray-100 px-4"
+        >
           <div class="filter flex content-center">
             <div
               style="border-radius: 0.375rem 0 0 0.375rem"
@@ -150,7 +153,7 @@
             <input
               v-model="tickersFilter"
               style="border-radius: 0 0.375rem 0.375rem 0"
-              class="h-8 border-l-2 border-gray-300 rounded-md shadow-md bg-gray-200"
+              class="h-8 border-l-2 border-gray-300 rounded-md shadow-md bg-gray-300"
               type="text"
             />
           </div>
@@ -229,7 +232,7 @@
             </button>
           </div>
         </div>
-        <dl class="pb-8 grid grid-cols-1 gap-5 bg-gray-100 sm:grid-cols-3">
+        <dl class="pb-8 grid grid-cols-1 gap-5 bg-gray-100 sm:grid-cols-3 px-4">
           <div
             v-for="t in paginatedTickers"
             :key="t.name"
@@ -272,11 +275,11 @@
         <hr class="w-full border-t border-gray-600 pt-8" />
       </template>
 
-      <section v-show="selectedTickerName !== null" class="relative">
-        <h3 class="text-lg leading-6 font-medium text-gray-900 mt-8">
+      <section v-show="selectedTickerName !== null" class="relative mx-4">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mt-8 px-4">
           {{ this.selectedTickerName }} - USD
         </h3>
-        <h3 class="bold text-lg leading-3 font-light text-gray-900 mb-8">
+        <h3 class="bold text-lg leading-3 font-light text-gray-900 mb-8 px-4">
           {{ this.graph[0]?.value }}
         </h3>
         <div
