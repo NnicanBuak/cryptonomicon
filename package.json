@@ -11,6 +11,7 @@
     "Babel": "0.0.1",
     "core-js": "^3.8.3",
     "eslint-config-prettier": "^8.5.0",
+    "lru-cache": "^7.14.1",
     "prettier": "^2.8.0",
     "vue": "^3.2.13"
   },
